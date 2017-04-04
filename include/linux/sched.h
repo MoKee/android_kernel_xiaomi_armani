@@ -146,6 +146,7 @@ extern void sched_update_nr_prod(int cpu, unsigned long nr, bool inc);
 extern void sched_get_nr_running_avg(int *avg, int *iowait_avg);
 
 extern void calc_global_load(unsigned long ticks);
+extern void update_cpu_load_nohz(void);
 
 extern unsigned long get_parent_ip(unsigned long addr);
 
@@ -281,6 +282,19 @@ static inline void select_nohz_load_balancer(int stop_tick) { }
 static inline void set_cpu_sd_state_idle(void) { }
 #endif
 
+/*
+ * Threads filter bitmask.
+ * Bit 0, for kthreads dump.
+ * Bit 1, for userspace threads dump.
+*/
+#define SHOW_KTHREADS   (1 << 0)
+#define SHOW_APP_THREADS        (1 << 1)
+
+/*
+ * Only dump TASK_* and SHOW_* tasks. (0, 3) for all tasks.
+ */
+extern void show_state_thread_filter(unsigned long state_filter,
+				unsigned long threads_filter);
 /*
  * Only dump TASK_* tasks. (0 for all tasks)
  */
@@ -1237,6 +1251,7 @@ struct sched_entity {
 struct sched_rt_entity {
 	struct list_head run_list;
 	unsigned long timeout;
+	unsigned long watchdog_stamp;
 	unsigned int time_slice;
 	int nr_cpus_allowed;
 
